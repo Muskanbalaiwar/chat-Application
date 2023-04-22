@@ -11,14 +11,18 @@ exports.postData=async(req,res,next)=>{
     const password=req.body._Password;
   
     
-    const salt=10;
+
    
+    const salt=10;
+    bcrypt.hash(password,salt,async (err,hash)=>{
+      console.log(err);
       //console.log('hash')
-      const data=await User.create({name:name,email:email, number:number,password:password})
+      const data=await User.create({name:name,email:email,number:number,password:hash})
       //console.log('answer')
     res.status(201).json({details:data})
-    
+    })
     }
+    
     catch(err){
         console.log(err);
         res.status(500).json({error:err})

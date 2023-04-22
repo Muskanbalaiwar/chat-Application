@@ -20,7 +20,7 @@ allowNull:false,
     unique: true
   },
   number:{
-    type: Sequelize.INTEGER,
+    type: Sequelize.BIGINT,
     allowNull: false,
     unique: true,
   },
