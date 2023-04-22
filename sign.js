@@ -8,24 +8,25 @@ form.addEventListener('submit',addData);
 
 function addData(e){
     e.preventDefault();
-    //console.log('data added')
+   
     const user={
         _Name:e.target.Name.value,
         _Email:e.target.Email.value,
         _Number:e.target.Number.value,
         _Password:e.target.Password.value
     }
-    console.log('data added')
+    console.log(user)
 
-//     axios
-//     .post("http://localhost:3001/sign/post",user)
-//    .then(res =>{
-//     alert('sign in success')
-//     console.log((res.data.details))
-//     window.location.href="http://127.0.0.1:5501/login.html";
-// })
-//    .catch(err=>{console.log(err);}
-//    );
+    axios
+    .post("http://localhost:3001/sign",user)
+   .then(res =>{
+    console.log(res)
+    alert('sign in success')
+    console.log((res.data.details))
+    //window.location.href="http://127.0.0.1:5501/login.html";
+})
+   .catch(err=>{console.log(err);}
+   );
 
     form.reset();
 
