@@ -20,12 +20,16 @@ function addData(e){
     axios
     .post("http://localhost:3001/sign",user)
    .then(res =>{
-    console.log(res)
+   if(res.status===202){
+    alert(res.data.message)
+   }
+   else{
     alert('sign in success')
-    console.log((res.data.details))
+    console.log((res.data.details))}
     //window.location.href="http://127.0.0.1:5501/login.html";
 })
-   .catch(err=>{console.log(err);}
+   .catch(err=>{//console.log(err);
+alert(err.message)}
    );
 
     form.reset();
