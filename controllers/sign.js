@@ -1,18 +1,12 @@
 const User=require('../models/sign');
 const bcrypt=require('bcrypt');
+const jwt=require('jsonwebtoken');
 
 exports.postData=async(req,res,next)=>{
   try{
     const user=await User.findOne({where:{number:req.body._Number}});
-   
-        if (user ) {
-           res.status(202).json({ status: 'error', message: "User already exists"});
-        }
-
-
-        const numUser=await User.findOne({where:{email:req.body._Email}});
-
- if (numUser) {
+    const numUser=await User.findOne({where:{email:req.body._Email}});
+        if (user || numUser) {
            res.status(202).json({ status: 'error', message: "User already exists"});
         }
 
@@ -44,4 +38,68 @@ else{
         console.log('err');
         res.status(500).json({error:err})
     }
+}
+
+
+function generateToken(id){
+  return jwt.sign({userId:id},'ScreatKey');
+}
+
+function isNumeric(value) {
+  return /^-?\d+$/.test(value);
+}
+
+exports.login=async(req,res,next)=>{
+  try{
+  const email=req.body._email;
+  const password=req.body._password
+if(isNumeric(email)){
+  const user= await User.findAll({where:{Number:email}})
+
+  if(user.length>0){
+    bcrypt.compare(password,user[0].password, (err,result)=>{
+     if(err){
+       throw new Error('Something went wrong');
+     }
+     if(result===true)
+     {
+       res.status(200).json({success:true,message:'login seccessfully',token:generateToken(user[0].id)})
+     }
+ 
+     else{
+       res.status(400).json({success:false,message:'password is incorrect'})
+     }
+    }) 
+   }
+   else{
+     res.status(404).json({success:false,message:'User not exist'})
+   }
+ 
+
+}
+else{
+ const user= await User.findAll({where:{email:email}})
+  if(user.length>0){
+   bcrypt.compare(password,user[0].password, (err,result)=>{
+    if(err){
+      throw new Error('Something went wrong');
+    }
+    if(result===true)
+    {
+      res.status(200).json({success:true,message:'login seccessfully',token:generateToken(user[0].id)})
+    }
+
+    else{
+      res.status(400).json({success:false,message:'password is incorrect'})
+    }
+   }) 
+  }
+  else{
+    res.status(404).json({success:false,message:'User not exist'})
+  }
+}}
+  catch(err){
+   
+   res.status(500).json({message:err,success:false})
+}
 }
