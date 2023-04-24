@@ -12,3 +12,16 @@ exports.addData=async(req,res,next)=>{
         console.log(err)
     }
 }
+
+
+exports.getData=async(req,res,next)=>{
+    try{
+       const chats=await message.findAll({where:{clientId:req.user.id}});
+       res.status(201).json({chats}) 
+    }
+
+    catch(err){
+        console.log(err)
+        res.status(403).json({mes:'error occured'})
+    }
+}
