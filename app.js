@@ -6,15 +6,22 @@ const sequelize=require('./util/database');
 const sign=require('./routes/sign')
 const chat=require('./routes/chat')
 const sign_Table=require('./models/sign');
-const chat_Table=require('./models/chat')
+const message_Table=require('./models/chat')
+const group_Table=require('./models/group')
+const userGroup=require('./models/userGroup')
 const app = express();
 app.use(bodyParser.json())
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(sign)
 app.use(chat)
-sign_Table.hasMany(chat_Table)
-chat_Table.belongsTo(sign_Table)
+sign_Table.hasMany(message_Table)
+message_Table.belongsTo(sign_Table)
+group_Table.hasMany(message_Table);
+message_Table.belongsTo(group_Table);
+
+sign_Table.belongsToMany(group_Table, { through: userGroup });
+group_Table.belongsToMany(sign_Table, { through: userGroup });
 sequelize.sync()
 .then(res=>{
     console.log('res');
