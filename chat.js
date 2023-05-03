@@ -50,8 +50,8 @@ const group={
     grp:document.getElementById('group_name').value,
 }
 console.log(group);
-
-const res=await axios.post("http://localhost:3001/group/post",group);
+const token=localStorage.getItem('token');
+const res=await axios.post("http://localhost:3001/group/post",group,{headers:{'Authorization':token}});
 if(res.status===200){
     alert('group created successfuly');
     showGroups(res.data)
@@ -70,7 +70,6 @@ try{
 
     const token=localStorage.getItem('token')
     const res=await axios.get("http://localhost:3001/group/get",{headers:{'Authorization':token}});
-    console.log(res.data[1].value[0]);
     for(var i=0;i<res.data.length;i++){
         showGroups(res.data[i].value[0]);
        // console.log(res.data[i].value[i]);
@@ -91,8 +90,8 @@ function showGroups(e) {
     const table = document.getElementById('tables');
         const tr = document.createElement('tr');
         const btn = document.createElement('button');
-        console.log(e.groupName)
-        btn.id=e.id; 
+        //console.log(e.groupName)
+        btn.id=e.id;
         btn.innerText = e.groupName;
         btn.className='btn  groupName'
         tr.appendChild(btn);
@@ -112,14 +111,45 @@ table.addEventListener('click',showData);
 table.addEventListener('click',deleteGroup);
 
 async function deleteGroup(e){
+    try{
     if(e.target.classList.contains('delete')){
         console.log(e.target.id)
+        const grp=localStorage.getItem('groupId')
+        const res=await axios.delete(`http://localhost:3001/group/delete/${grp}`)
+
+        if (res.status===201) {
+            e.target.parentNode.remove();
+            e.target.remove();
+        }
+    alert(res.data.msg)
         
+    }}
+
+    catch(err){
+        console.log(err)
     }
 }
 
 async function showData(e){
     try{
+        e.preventDefault();
+       
+            const grpid=localStorage.getItem('groupId');
+            const token=localStorage.getItem('token');
+            const res=await axios.get(`http://localhost:3001/admin/find/${grpid}`,{headers:{'Authorization':token}})
+            console.log(res)
+            if(res.data.admin===false ||res.data.admin===null){
+                document.getElementById('hideDataId').style.display='none';
+               
+
+            }
+
+           else{
+                document.getElementById('hideDataId').style.display='block';
+               
+
+            }
+
         list.innerText=''
     if(e.target.classList.contains('groupName')){
        var values= e.target;
@@ -166,13 +196,47 @@ const user={
 
 
 const grpId=localStorage.getItem('groupId');
+const token=localStorage.getItem('token');
 
-const res=await axios.post(`http://localhost:3001/user/add/${grpId}`,user)
+const res=await axios.post(`http://localhost:3001/user/add/${grpId}`,user,{headers:{'Authorization':token}})
 if(res.status===200)
 alert(res.data.msg)
   }
 
+  userForm.addEventListener('click',removeUser);
 
-            
+  async function removeUser(e){
+    try{
+    if(e.target.classList.contains('removeUser')){
+        
+        const user={
+            _email:document.getElementById('user_id').value,
+        }
+const token=localStorage.getItem('token')
+        const grpId=localStorage.getItem('groupId');
+        const res=await axios.post(`http://localhost:3001/user/remove/${grpId}`,user,{headers:{'Authorization':token}})
+        if(res.status===200)
+alert(res.data.msg)
+    }}
+
+    catch(err){
+        console.log(err)
+    }
+  }
 
 
+//   async function isAdmin(e){
+//     e.preventDefault();
+//     const grpid=localStorage.getItem('groupId');
+//     const token=localStorage.getItem('token');
+//     const res=await axios.put(`http://localhost:3001/admin/find/${grpid}`,{headers:{'Authorization':token}})
+//     console.log(res);
+//     document.getElementById("user_id").style.visibility=block
+//   }
+
+
+
+
+
+
+  

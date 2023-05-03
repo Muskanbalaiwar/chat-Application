@@ -9,7 +9,7 @@ const Data = sequelize.define('UserGroup', {
    allowNull: false,
     primaryKey: true
   }, 
-  
+  isAdmin:Sequelize.BOOLEAN,
 });
 
 module.exports = Data;
