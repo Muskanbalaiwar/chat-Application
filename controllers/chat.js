@@ -2,15 +2,21 @@ const user_Table=require('../models/sign')
 const message=require('../models/chat')
 const group=require('../models/group')
 const UserGroup=require('../models/userGroup')
+const { Sequelize, Op } = require("sequelize");
 
 exports.addData=async(req,res,next)=>{
     try{
     const data=req.body.msg;
     const id=req.params.id
+    const newMsg=await message.create({message:data,clientId:req.user.id,groupId:id})
 
-    
-    const chats=await message.create({message:data,clientId:req.user.id,groupId:id})
-    res.status(201).json({details:chats})
+    const chats= await message.findAll({where:{groupId:id,createdAt:newMsg.createdAt},
+            include:{
+                model:user_Table,
+                
+            }
+        })
+    res.status(201).json({chats})
     }
     catch(err){
         console.log(err)
@@ -21,7 +27,20 @@ exports.addData=async(req,res,next)=>{
 exports.getData=async(req,res,next)=>{
     try{
         const id=req.params.id;
-       const chats=await message.findAll({where:{groupId:id}});
+        
+       let msgid=req.params.msgId
+     
+       
+        value=parseInt(msgid)
+    
+     
+        const chats= await message.findAll({where:{groupId:id,id:{[Op.gt]:value}},
+            include:{
+                model:user_Table,
+                
+            }
+        })
+      // const chats=await message.findAll({where:{groupId:id}});
        res.status(201).json({chats}) 
     }
 
@@ -109,6 +128,7 @@ catch(err){
 exports.deleteGroup = async(req,res,next)=>{
     try{
         await group.destroy({where:{id:req.params.id}});
+        await message.destroy({where:{groupId:req.params.id}})
         res.status(201).json({msg:'group deleted successfully'})
     }
 
@@ -146,11 +166,16 @@ exports.createAdmin=async(req,res)=>{
 
 exports.removeAdmin=async(req,res)=>{
 try{
-    await UserGroup.update({
-        isAdmin:false,},{where:{groupId:req.body.grpId,id:req.params.id}}
+
+    const data= await UserGroup.findOne({where:{clientId:req.user.id,isAdmin:true,groupId:req.params.id}});
+    if(data===null){
+        res.status(201).json({msg:'you do not have this access'})
+    }
+    else{
+    await UserGroup.update({isAdmin:false,},{where:{groupId:req.body.grpId,id:req.params.id}}
     )
 
-    res.status(201).json({msg:'Admin has been removed'})
+    res.status(201).json({msg:'Admin has been removed'})}
 }
 catch(err){
     console.log(err);
@@ -179,10 +204,7 @@ exports.removeUser=async(req,res)=>{
 
 exports.findAdmin=async(req,res)=>{
     try{
-        
-        console.log('>>>>>>>>>>>>>>>>>'+req.params.id)
         const admin=await UserGroup.findOne({where:{isAdmin:true,clientId:req.user.id,groupId:req.params.id}})
-        console.log('>>>>>>>>>>>>>>>>>'+admin)
 res.status(200).json({admin})
     }
 

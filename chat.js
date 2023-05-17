@@ -1,46 +1,42 @@
-var form=document.getElementById('form_id');
-var list=document.getElementById('items');
+
+
 var groupFrom=document.getElementById('group');
 var table=document.getElementById('tables');
 var userForm=document.getElementById('addUser')
-form.addEventListener('submit',addMessage);
+
+
+
 groupFrom.addEventListener('submit',addGroup);
-userForm.addEventListener('submit',addUser)
-async function addMessage(e){
-    try{
-    e.preventDefault();
-var message={
-    msg:e.target.CHAT.value,
-}
-
-const token=localStorage.getItem('token');
-const grpId=localStorage.getItem('groupId');
-const res=await axios.post(`http://localhost:3001/chat/post/${grpId}`,message,{headers:{'Authorization':token}})
-console.log(res.data.details.message)
-lastMessage(res.data.details)
-}
-
-catch(err){
-    console.log(err)
-}
-
-}
+userForm.addEventListener('submit',addUser);
+table.addEventListener('click',showData);
+table.addEventListener('click',deleteGroup);
+userForm.addEventListener('click',removeUser);
 
 
+//socket code
+
+const socket = io("http://127.0.0.1:3001");
+    
+    socket.on('connect',()=>{
+        console.log(`You are connected with id:${socket.id}`);
+        // socket.emit('custom-event', 10,"hello",{token:10});
+    });
+
+// add message function
+
+
+
+// window load
 window.addEventListener("DOMContentLoaded",async()=>{
 
     try{
-
 getGroup();
-
     }
-
     catch(err){
         console.log(err)}
-
 })
 
-
+// create group function
 async function addGroup(e){
     try{
     e.preventDefault()
@@ -64,17 +60,23 @@ catch(err){
     alert('something went wrong');
 }}
 
+
+//getting group  from backend function
+
 async function getGroup(){
     
 try{
 
     const token=localStorage.getItem('token')
     const res=await axios.get("http://localhost:3001/group/get",{headers:{'Authorization':token}});
+    
     for(var i=0;i<res.data.length;i++){
         showGroups(res.data[i].value[0]);
        // console.log(res.data[i].value[i]);
 
     }
+
+    //reloadpage();
     
 
 }
@@ -84,7 +86,7 @@ try{
 } 
 
 
-
+// show group at front end
 function showGroups(e) {
 
     const table = document.getElementById('tables');
@@ -107,8 +109,8 @@ function showGroups(e) {
  
 }
 
-table.addEventListener('click',showData);
-table.addEventListener('click',deleteGroup);
+
+// delete froup function 
 
 async function deleteGroup(e){
     try{
@@ -121,89 +123,88 @@ async function deleteGroup(e){
             e.target.parentNode.remove();
             e.target.remove();
         }
-    alert(res.data.msg)
-        
+            alert(res.data.msg) 
     }}
 
     catch(err){
         console.log(err)
     }
 }
+  
 
+// page reloading after a time
+
+// window.onload = function () {
+//     setTimeout(()=>{
+        
+//         reloadpage();
+//         console.log('page reloaded>>>>')
+//     },10000)
+// }
+
+ // show chat of a function
 async function showData(e){
     try{
         e.preventDefault();
-       
+
+        if(e.target.classList.contains('groupName')){
+            var values= e.target;
+            
+     
+             localStorage.setItem('groupId',values.id)
             const grpid=localStorage.getItem('groupId');
             const token=localStorage.getItem('token');
+           
             const res=await axios.get(`http://localhost:3001/admin/find/${grpid}`,{headers:{'Authorization':token}})
-            console.log(res)
             if(res.data.admin===false ||res.data.admin===null){
-                document.getElementById('hideDataId').style.display='none';
-               
-
+                document.getElementById('hideDataId').style.display='none';  
             }
 
            else{
                 document.getElementById('hideDataId').style.display='block';
-               
-
             }
 
-        list.innerText=''
-    if(e.target.classList.contains('groupName')){
-       var values= e.target;
-   localStorage.setItem('groupId',values.id)
-        const token=localStorage.getItem('token');
-        
-        
-        const res=await axios.get(`http://localhost:3001/chat/get/${values.id}`,{headers:{'Authorization':token}})
-       
-        for(var i=0;i<res.data.chats.length;i++){
-           
-            var newItem = res.data.chats[i].message;
-    
-
-            var li = document.createElement('li');
-            li.className = 'list-group-item;width-50%';
-            li.appendChild(document.createTextNode(newItem));
-            list.append(li);
         }
-            }}
-        
-            catch(err){
-                console.log(err)}
-        
+          
+
+      }
+     catch(err){
+                console.log(err)
             }
+ }
 
 
   function lastMessage(e){
-
     var newItem=e.message
+    Name=e.client.name
     var li = document.createElement('li');
     li.className = 'list-group-item;width-50%';
-    li.appendChild(document.createTextNode(newItem));
+    li.appendChild(document.createTextNode(Name +" : "+newItem));
     list.append(li);
   }  
+
+ 
   
   
   async function addUser(e){
     e.preventDefault();
 
-const user={
-    _email:document.getElementById('user_id').value,
-}
+     const user={
+        _email:document.getElementById('user_id').value,
+       }
 
 
-const grpId=localStorage.getItem('groupId');
-const token=localStorage.getItem('token');
+     const grpId=localStorage.getItem('groupId');
+     const token=localStorage.getItem('token');
 
-const res=await axios.post(`http://localhost:3001/user/add/${grpId}`,user,{headers:{'Authorization':token}})
-if(res.status===200)
-alert(res.data.msg)
-  }
+     const res=await axios.post(`http://localhost:3001/user/add/${grpId}`,user,{headers:{'Authorization':token}})
+     if(res.status===200)
+    alert(res.data.msg)
+    }
 
-  userForm.addEventListener('click',removeUser);
+  
+
+    // removing user from the group
 
   async function removeUser(e){
     try{
@@ -212,27 +213,18 @@ alert(res.data.msg)
         const user={
             _email:document.getElementById('user_id').value,
         }
-const token=localStorage.getItem('token')
+        const token=localStorage.getItem('token')
         const grpId=localStorage.getItem('groupId');
         const res=await axios.post(`http://localhost:3001/user/remove/${grpId}`,user,{headers:{'Authorization':token}})
         if(res.status===200)
-alert(res.data.msg)
-    }}
-
+         alert(res.data.msg)
+     }}
     catch(err){
         console.log(err)
     }
-  }
-
-
-//   async function isAdmin(e){
-//     e.preventDefault();
-//     const grpid=localStorage.getItem('groupId');
-//     const token=localStorage.getItem('token');
-//     const res=await axios.put(`http://localhost:3001/admin/find/${grpid}`,{headers:{'Authorization':token}})
-//     console.log(res);
-//     document.getElementById("user_id").style.visibility=block
-//   }
+}
+    
+ 
 
 
 
